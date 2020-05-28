@@ -1,0 +1,554 @@
+.data 
+	tb1: .asciiz "Input n: "
+	tb2: .asciiz "a["
+	tb3: .asciiz "]: "
+	tb4: .asciiz "Show array: "
+	
+	tb5: .asciiz "\nChoose 1 option you want me to do: \n1. Display array.\n2. Display sum of array.\n3. Find the max value.\n4. Display prime numbers in array.\n5. Sort array.\n6. Exit.\nType :"
+	tb6: .asciiz "Sum of value in array is: "
+	tb7: .asciiz "The maximum number is: "
+	tb8: .asciiz "Prime numbers in array is: "
+	tb9: .asciiz "After sort array: "
+	tb10: .asciiz "\nContinue? \n0. No.\n1. Yes.\nType your option: "
+	n: .word 0
+	arr: .space 100 
+	sum: .word 0
+	max: .word 0
+
+.text
+
+	#pass parameter
+	la $a0, n  
+	la $a1, arr
+	#Call input array function
+	jal _InputArray
+
+
+Menu:
+	#================display menu to choose================
+	
+	li $v0, 4
+	la $a0, tb5
+	syscall
+
+	#type option
+	li $v0, 5 
+	syscall 
+
+	beq $v0, 1, OutputArray
+	beq $v0, 2, CountSum
+	beq $v0, 3, FindMax
+	beq $v0, 4, DisplayPrimeNumbers
+	beq $v0, 5, Sort
+	beq $v0, 6, Exit
+
+
+OutputArray:
+	#display notice
+	li $v0, 4
+	la $a0, tb4	
+	syscall
+
+	#load parameter
+	lw $a0, n
+	la $a1, arr
+
+	#call output arr function
+	jal _OutputArray
+
+	j Menu
+
+CountSum:
+	#display notice
+	li $v0, 4
+	la $a0, tb6	
+	syscall
+
+	#load parameters
+	lw $a0, n
+	la $a1, arr
+
+	#call sum function
+	jal _CountSum
+
+	sw $v0, sum
+
+	li $v0, 1
+	lw $a0, sum
+	syscall	
+
+	#end
+	j Menu
+
+FindMax:
+	#display notice
+	li $v0, 4
+	la $a0, tb7	
+	syscall
+
+	#load parameters
+	lw $a0, n
+	la $a1, arr
+
+	#call find max function
+	jal _FindMax
+
+	sw, $v0, max
+	
+	li $v0, 1
+	lw $a0, max
+	syscall
+
+	j Menu
+
+DisplayPrimeNumbers:
+	#display notice
+	li $v0, 4
+	la $a0, tb8	
+	syscall
+
+	#load parameters
+	lw $a0, n
+	la $a1, arr
+
+	jal _DisplayPrimeNumbers
+
+	j Menu
+
+
+Sort:
+	#display notice
+	li $v0, 4
+	la $a0, tb9	
+	syscall
+
+	lw $a0, n
+	la $a1, arr
+
+	jal _Sort
+
+	lw $a0, n
+	la $a1, arr
+	
+	jal _OutputArray
+
+	j Menu
+
+Exit:
+	li $v0, 10
+	syscall
+
+
+#===========input arr function==========
+#begin function
+_InputArray:
+	addi $sp, $sp, -32
+	sw $ra, ($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+	sw $t0, 12($sp)
+	sw $t1, 16($sp)
+
+	#load parameter into register
+	move $s0, $a0
+	move $s1, $a1
+
+#body function
+	#display notice
+	li $v0, 4
+	la $a0, tb1
+	syscall
+	
+	#insert n
+	li $v0, 5
+	syscall
+
+	#save n to s0
+	sw $v0, ($s0)
+	#load n
+	lw $s0, ($s0)
+	
+	#initialize the loop
+	li $t0, 0  #i=0
+
+_InputArray.Loop:
+	#display notice
+	li $v0, 4
+	la $a0, tb2
+	syscall
+	
+	#display i
+	li $v0, 1
+	move $a0, $t0
+	syscall
+
+	#display notice
+	li $v0, 4
+	la $a0, tb3
+	syscall
+
+	li $v0, 5
+	syscall
+
+	sw $v0, ($s1)
+
+	#increase address
+	addi $s1, $s1, 4
+
+	#increase index
+	addi $t0, $t0, 1
+
+	#check if i<n then loop
+	slt $t1, $t0, $s0
+	beq $t1, 1, _InputArray.Loop
+
+#end of function
+	lw $ra, ($sp)
+	lw $s0, 4($sp)
+	lw $s1, 8($sp)
+	lw $t0, 12($sp)
+	lw $t1, 16($sp)
+
+	#del stack
+	addi $sp, $sp, 32
+
+	jr $ra
+
+
+#================output array function=============
+_OutputArray:
+#begin function
+	addi $sp, $sp, -32
+	sw $ra, ($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+	sw $t0, 12($sp)
+	sw $t1, 16($sp)
+
+	#load parameter into register
+	move $s0, $a0
+	move $s1, $a1
+
+#body function
+	#initialize the loop
+	li $t0, 0  #i=0
+_OutputArray.Loop:
+	li $v0, 1
+	lw $a0, ($s1)
+	syscall 
+	
+	#display ' '
+	li $v0, 11
+	la $a0, 32
+	syscall 
+
+	#increase address
+	addi $s1, $s1, 4
+	#increase i
+	addi $t0, $t0, 1
+
+	slt $t1, $t0, $s0
+	beq $t1, 1, _OutputArray.Loop
+#end of function
+	lw $ra, ($sp)
+	lw $s0, 4($sp)
+	lw $s1, 8($sp)
+	lw $t0, 12($sp)
+	lw $t1, 16($sp)
+	addi $sp, $sp, 32
+
+	jr $ra
+
+#=============sum function==========
+_CountSum:
+#begin function
+	addi $sp, $sp, -32
+	sw $ra, ($sp)
+	sw $s0, 4($sp)
+	sw $s1, 8($sp)
+	sw $t0, 12($sp)
+	sw $t1, 16($sp)
+	sw $t2, 20($sp)
+	sw $t3, 24($sp)
+
+	#load parameter into register
+	move $s0, $a0   #n
+	move $s1, $a1   #arr
+
+#body function
+	#initialize the loop
+	li $t0, 0   #i=0
+	li $t2, 0 	#s=0
+_CountSum.Loop:
+	lw $t3, ($s1)
+	add $t2, $t2, $t3
+	
+	
+	addi $t0, $t0, 1
+
+	addi $s1, $s1, 4
+
+	slt $t1, $t0, $s0
+	beq $t1, 1, _CountSum.Loop
+
+	move $v0, $t2	
+
+#end of function
+	lw $ra, ($sp)
+	lw $s0, 4($sp)
+	lw $s1, 8($sp)
+	lw $t0, 12($sp)
+	lw $t1, 16($sp)
+	lw $t2, 20($sp)
+	lw $t3, 24($sp)	
+
+	addi $sp, $sp, -32
+
+	jr $ra
+
+#=============Find max function===========
+_FindMax:
+	addi $sp, $sp, -32
+	sw $ra, ($sp)
+	sw $s0, 4($sp)    
+	sw $s1, 8($sp)
+	sw $t0, 12($sp)    
+	sw $t1, 16($sp)    
+	sw $t2, 20($sp)    
+	sw $t3, 24($sp)
+
+	#load parameter into register
+	move $s0, $a0   #n
+	move $s1, $a1   #arr
+
+
+	#initialize the loop
+	li $t0, 0   #i=1
+	lw $t2, ($s1)   #max
+
+_FindMax.Loop:
+	beq $t0, $s0, Finish1
+
+	lw $t3, ($s1)
+	slt $t1, $t2, $t3
+	beq $t1, 1, IF
+
+Inc:
+	addi $t0, $t0, 1
+
+	addi $s1, $s1, 4
+	j _FindMax.Loop
+	
+IF:
+	move $t2, $t3
+	j Inc
+
+Finish1:
+	move $v0, $t2
+	
+	lw $ra, ($sp)
+	lw $s0, 4($sp)    
+	lw $s1, 8($sp)
+	lw $t0, 12($sp)    
+	lw $t1, 16($sp)    
+	lw $t2, 20($sp)    
+	lw $t3, 24($sp)
+
+	jr $ra
+
+
+#======== display prime number function =====
+_DisplayPrimeNumbers:
+	addi $sp, $sp, -32
+	sw $ra, ($sp)
+	sw $s0, 4($sp)    
+	sw $s1, 8($sp)
+	sw $t0, 12($sp)    
+	sw $t1, 16($sp)    
+	sw $t2, 20($sp)    
+
+	#load parameter into register
+	move $s0, $a0   #n
+	move $s1, $a1   #arr
+ 
+
+	#initialize the loop
+	li $t0, 0   #i=0
+
+_DisplayPrimeNumbers.Loop:
+	beq $t0, $s0, Finish2
+	
+	lw $t2, ($s1)
+
+	jal _IsPrime
+	
+	beq $v0, 1, Out
+
+conti:
+	addi $t0, $t0, 1
+	addi $s1, $s1, 4
+
+	j _DisplayPrimeNumbers.Loop
+
+Out:
+	move $a0, $t2
+	li $v0, 1
+	syscall
+
+	li $v0, 11
+	la $a0, ' '
+	syscall
+	j conti
+
+
+Finish2:
+	lw $ra, ($sp)
+	lw $s0, 4($sp)    
+	lw $s1, 8($sp)
+	lw $t0, 12($sp)    
+	lw $t1, 16($sp)    
+	lw $t2, 20($sp)   
+
+	addi $sp, $sp, 32
+	
+	jr $ra
+
+
+#function check if it is a prime number
+_IsPrime:
+	addi $sp, $sp, -32
+	sw $ra, ($sp)
+	sw $t0, 4($sp)
+	sw $t1, 8($sp)
+	sw $t3, 12($sp)
+	sw $t4, 16($sp)
+	sw $t5, 20($sp)
+	sw $t6, 24($sp)
+
+	li $t0, 2    
+	li $t6, 2
+_IsPrime.Loop:
+	li $t5, 2
+	slt $t4, $t2, $t5
+	beq $t4, 1, false
+
+	beq $t2, $t6, true
+
+	div $t2, $t0
+	mfhi $t3
+	
+	beq $t3, 0, false
+
+	addi $t0, $t0, 1
+
+	beq $t0, $t2, true
+	
+	j _IsPrime.Loop
+
+false:
+	li $v0, 0	#v0 = 0: false
+
+	lw $ra, ($sp)
+	lw $t0, 4($sp)
+	lw $t1, 8($sp)
+	lw $t3, 12($sp)
+	lw $t4, 16($sp)
+	lw $t5, 20($sp)
+	lw $t6, 24($sp)
+	addi $sp, $sp, 32
+
+	jr $ra
+
+
+true:
+	li $v0, 1	#v0 = 1: true
+
+	lw $ra, ($sp)
+	lw $t0, 4($sp)
+	lw $t1, 8($sp)
+	lw $t3, 12($sp)
+	lw $t4, 16($sp)
+	lw $t5, 20($sp)
+	lw $t6, 24($sp)
+	addi $sp, $sp, 32
+
+	jr $ra
+
+
+
+#==========sort function=========
+_Sort:
+	addi $sp, $sp, -40
+	sw $ra, ($sp)
+	sw $s0, 4($sp)    
+	sw $s1, 8($sp)
+	sw $s2, 12($sp)    #n-1
+	sw $t0, 16($sp)    #i
+	sw $t1, 20($sp)    # j
+	sw $t2, 24($sp)    
+	sw $t3, 28($sp)	   #array[i]
+	sw $t4, 32($sp)     #array[j]
+
+	sw $t5, 36($sp)     
+	sw $t6, 40($sp)
+	
+	
+	#load parameter into register
+	move $s0, $a0   #n
+	move $s1, $a1   #arr
+	move $s2, $s0   #n-1
+	addi $s2, $s2, -1
+
+	#initialize the loop
+	li $t0, -4   #i=-4
+	li $t5, -1  
+	
+_Sort.Loop:
+	addi $t0, $t0, 4
+	addi $t5, $t5, 1
+
+	slt $t2, $t5, $s2	#if i >= n - 1 true
+	beq $t2, 0, FinishSort
+
+	move $t1, $t0		# j = i+1
+	addi $t1, $t1, 4
+	move $t6, $t5
+	addi $t6, $t6, 1
+
+_j.Loop:
+	slt $t2, $t6, $s0      #if j >= n return to increase i
+	beq $t2, 0, _Sort.Loop
+
+	lw $t3, arr($t0)	#a[i]
+	lw $t4, arr($t1)	#a[j]
+
+	slt $t2, $t4, $t3
+	beq $t2, 1, swap
+	
+_j.Con:
+	addi $t1, $t1, 4
+	addi $t6, $t6, 1
+	j _j.Loop
+
+
+swap:
+	sw $t3, arr($t1)
+	sw $t4, arr($t0)
+	j _j.Con
+
+
+FinishSort:
+	lw $ra, ($sp)
+	lw $s0, 4($sp)    
+	lw $s1, 8($sp)
+	lw $s2, 12($sp)    #n-1
+	lw $t0, 16($sp)    #i
+	lw $t1, 20($sp)    #j
+	lw $t2, 24($sp)    
+	lw $t3, 28($sp)	   #array[i]
+	lw $t4, 32($sp)  
+	lw $t5, 36($sp)     #i
+	lw $t6, 40($sp)		#j
+
+	addi $sp, $sp, 40
+	jr $ra
